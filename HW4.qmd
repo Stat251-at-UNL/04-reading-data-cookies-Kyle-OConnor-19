@@ -1,0 +1,179 @@
+---
+title: "Chocolate Chip Cookies"
+execute:
+  error: true
+author: "Kyle O'Connor"
+output: html_document
+---
+
+## Reading In the Data
+
+First, read in the CSV data of cookie ingredients. Make sure that your end-result data has appropriate types for each column - these should match the types provided in the documentation in the README.md file.
+
+```{r}
+
+cookies <- read.csv("choc_chip_cookie_ingredients.csv")
+head(cookies)
+tail(cookies)
+summary(cookies)
+
+```
+
+```{python}
+
+import pandas as pandas
+cookies = pandas.read_csv("choc_chip_cookie_ingredients.csv")
+cookies.head
+
+```
+
+## Exploratory Data Analysis
+
+Exploratory data analysis is the process of getting familiar with your dataset. To get started, [this blog post](https://www.mrdbourke.com/a-gentle-introduction-to-exploratory-data-analysis/) provides a nice checklist to get you thinking:
+
+> 1.  What question(s) are you trying to solve (or prove wrong)?
+> 2.  What kind of data do you have and how do you treat different types?
+> 3.  What's missing from the data and how do you deal with it?
+> 4.  Where are the outliers and why should you care about them?
+> 5.  How can you add, change or remove features to get more out of your data?
+
+------------------------------------------------------------------------
+
+### Generating Questions
+
+Generate at least 5 questions you might explore using this database of cookie ingredients.
+
+1. Is there a Difference in Rating based on Recipe Source?
+2. Which Ingredients have the Highest Average Rating?
+3. Which Recipe Source has the Highest Average Rating?
+4. Which Recipes have repeat Ingredients?
+5. What is the Most Common Ingredients throughout all of the Recipes?
+
+### Skimming the Data
+
+One thing we often want to do during EDA is to examine the quality of the data - are there missing values? What quirks might exist in the dataset?
+
+The `skimr` package in R, and the similar `skimpy` package in python (which has a much better name, in my opinion), can help provide visual summaries of the data.
+
+Install both packages, and read the package documentation ([R](https://cran.r-project.org/web/packages/skimr/vignettes/skimr.html), [Python](https://pypi.org/project/skimpy/)).
+
+\[Part 1\] Use each package and generate summaries of your data that require the use of at least some non-default options in each package's `skim` function.
+
+```{r}
+
+library(skimr)
+skim(cookies)
+
+```
+
+```{python}
+
+from skimpy import skim
+skim(cookies)
+
+```
+
+--------------------------------------------------------------------------------
+
+\[Part 2\] Write 1-2 sentences about what you can tell from each summary display you generate. Did you discover anything new about the data?
+
+-   I can see that there are 1,010 missing entries for ratings from this data set. Additionally, I can also see the means, standard deviations, quartiles, and mini histograms for each of the quantitative variables. However, the X variable doesn't mean a lot in reference to this data set because it is just assigning numbers to each row in the data set.
+
+--------------------------------------------------------------------------------
+### Generating Tables
+
+Another useful technique for exploratory data analysis is to generate summary tables. You may want to use the `dplyr` package in R (`group_by` or `count` functions), as well as the `groupby` and `count` methods in Pandas. [Python example](https://sparkbyexamples.com/pandas/pandas-groupby-count-examples/), [R example](https://dplyr.tidyverse.org/reference/count.html)
+
+\[Part 1\] Using R and Python, generate a table that shows what **proportion** of recipes contain each type of ingredient, for the most common 20 ingredients.
+
+```{r}
+
+unique.ing <- unique(cookies[, c("Recipe_Index", "Ingredient")])
+unique.ing
+ing.table <- table(unique.ing$Ingredient)
+
+length(unique(cookies$Recipe_Index))
+ing.table_2 <- ing.table/209
+ing.table_2
+
+ing.table_3 <- sort(ing.table_2, decreasing = TRUE)
+head(ing.table_3, 20)
+
+```
+
+```{python}
+
+import pandas as pd
+unique_ing_table_p = cookies.groupby(["Recipe_Index","Ingredient"]).size().reset_index()
+
+ing_table_p = pd.DataFrame(unique_ing_table_p["Ingredient"])
+ing_table_p
+
+ing_table_p_2 = (ing_table_p).value_counts()/209
+ing_table_p_2
+
+ing_table_p_2.head(21)
+
+```
+
+\[Part 2\] Print out a character string that lists all of the ingredients that do not appear in at least 20 recipes.
+
+```{r}
+
+ing.table_no20 <- ing.table[ing.table<=20]
+ing.table_no20
+ing.table_no20.sort <- ing.table_no20[order(names(ing.table_no20))]
+ing.table_no20.sort
+names <- toString(names(ing.table_no20.sort))
+names
+
+```
+
+```{python}
+
+ing_table_p_sort = ing_table_p['Ingredient'].value_counts()
+names = ing_table_p_sort[ing_table_p_sort<20].index
+names.sort_values()
+
+```
+
+### Visualization
+
+Using whatever plotting system you are comfortable with in R or python, see if you can create a couple of useful exploratory data visualizations which address one of the questions you wrote above - or another question which you've come up with as you've worked on this assignment.
+
+\[Part 1\] Create at least one plot (it doesn't have to be pretty) that showcases an interesting facet of the data.
+
+```{r}
+
+cookies2 <- na.omit(cookies)
+median(cookies2$Rating)
+
+boxplot(cookies2$Rating ~ reorder(cookies2$Ingredient, -cookies2$Rating, FUN = median),
+     horizontal = FALSE,
+     main="Rating by Ingredient Type",
+     xlab="",
+     ylab="Rating",
+     las = 2,
+     cex.axis = 0.5,
+     col="lightblue"
+     )
+
+cookies2$Group <- sub("_.*", "", cookies2$Recipe_Index)
+cookies3 <- unique(cookies2[, c("Recipe_Index", "Ingredient", "Rating", "Group")])
+cookies3$Group <- factor(cookies3$Group, levels = c("AR", "E"))
+boxplot(Rating ~ Group,
+     data=cookies3,
+     main="Recipe Rating by Ingredient Quantity",
+     xlab="Recipe Index Group",
+     ylab="Recipe Rating",
+     cex=.5,
+     pch=4,
+     col="red")
+
+```
+
+\[Part 2\] Write 2-3 sentences about what you can learn from that plot and what directions you might want to investigate from here.
+
+-   For the first plot, the Median Rating for all the Ingredients hovers around .85 (true median for all ingredients after moving all NA values is .8703). The most common ingredients throughout the recipe list (eggs, all purpose flour, vanilla, baking soda) all have median ratings around this mark. For the ingredients that are only used once, you can see that they tend to occupy the highest and lowest median spots on the graph, which is expected due to the lack of variability in the data. Towards the middle set of the ingredients, there are a lot of outliers with rating closer to the .4-.5 range. For further analysis, I would like to investigate why this is the case.
+
+-   For the second plot, a comparison was done between the Recipe Index Groups: AllRecipe versus Epicurious (Misc doesn't have Ratings). Overall there doesn't seem to be a significant difference between the two, as the boxplots have heavy overlap. It does appear that AllRecipes has more outliers compared to Epicurious, but overall this graph doesn't show any clear further path for an investigation.
