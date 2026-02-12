@@ -43,11 +43,11 @@ Exploratory data analysis is the process of getting familiar with your dataset. 
 
 Generate at least 5 questions you might explore using this database of cookie ingredients.
 
-1.  What Combination of Cookie Ingredients produces the Highest Rating?
-2.  Is there a linear relationship between Quantity and Rating?
-3.  Which Ingredients have the Highest Average Rating?
-4.  Which Recipe Source had the Highest Average Rating?
-5.  Is there a Difference in Rating based on Recipe Source?
+1. Is there a Difference in Rating based on Recipe Source?
+2. Which Ingredients have the Highest Average Rating?
+3. Which Recipe Source has the Highest Average Rating?
+4. How many Ingredients repeat in the Same Recipe?
+5. What is the Most Common Ingredient throughout all of the Recipes?
 
 ### Skimming the Data
 
@@ -88,10 +88,14 @@ Another useful technique for exploratory data analysis is to generate summary ta
 
 ```{r}
 
-ing.table <- table(cookies$Ingredient)
-ing.table
-ing.table_2 <- prop.table(ing.table)
+unique.ing <- unique(cookies[, c("Recipe_Index", "Ingredient")])
+unique.ing
+ing.table <- table(unique.ing$Ingredient)
+
+length(unique(cookies$Recipe_Index))
+ing.table_2 <- ing.table/209
 ing.table_2
+
 ing.table_3 <- sort(ing.table_2, decreasing = TRUE)
 head(ing.table_3, 20)
 
@@ -100,10 +104,14 @@ head(ing.table_3, 20)
 ```{python}
 
 import pandas as pd
-ing_table_p = pd.DataFrame(cookies['Ingredient'])
+unique_ing_table_p = cookies.groupby(["Recipe_Index","Ingredient"]).size().reset_index()
+
+ing_table_p = pd.DataFrame(unique_ing_table_p["Ingredient"])
 ing_table_p
-ing_table_p_2 = pd.DataFrame(ing_table_p["Ingredient"].value_counts()/1990)
+
+ing_table_p_2 = (ing_table_p).value_counts()/209
 ing_table_p_2
+
 ing_table_p_2.head(21)
 
 ```
@@ -114,7 +122,7 @@ ing_table_p_2.head(21)
 
 ing.table_no20 <- ing.table[ing.table<=20]
 ing.table_no20
-ing.table_no20.sort <- sort(ing.table_no20, decreasing=TRUE)
+ing.table_no20.sort <- ing.table_no20[order(names(ing.table_no20))]
 ing.table_no20.sort
 names <- toString(names(ing.table_no20.sort))
 names
@@ -125,7 +133,7 @@ names
 
 ing_table_p_sort = ing_table_p['Ingredient'].value_counts()
 names = ing_table_p_sort[ing_table_p_sort<20].index
-names
+names.sort_values()
 
 ```
 
@@ -151,9 +159,10 @@ boxplot(cookies2$Rating ~ reorder(cookies2$Ingredient, -cookies2$Rating, FUN = m
      )
 
 cookies2$Group <- sub("_.*", "", cookies2$Recipe_Index)
-cookies2$Group <- factor(cookies2$Group, levels = c("AR", "E"))
+cookies3 <- unique(cookies2[, c("Recipe_Index", "Ingredient", "Rating", "Group")])
+cookies3$Group <- factor(cookies3$Group, levels = c("AR", "E"))
 boxplot(Rating ~ Group,
-     data=cookies2,
+     data=cookies3,
      main="Recipe Rating by Ingredient Quantity",
      xlab="Recipe Index Group",
      ylab="Recipe Rating",
