@@ -46,8 +46,8 @@ Generate at least 5 questions you might explore using this database of cookie in
 1. Is there a Difference in Rating based on Recipe Source?
 2. Which Ingredients have the Highest Average Rating?
 3. Which Recipe Source has the Highest Average Rating?
-4. How many Ingredients repeat in the Same Recipe?
-5. What is the Most Common Ingredient throughout all of the Recipes?
+4. Which Recipes have repeat Ingredients?
+5. What is the Most Common Ingredients throughout all of the Recipes?
 
 ### Skimming the Data
 
